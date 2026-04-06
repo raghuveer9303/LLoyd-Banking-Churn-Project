@@ -1,73 +1,168 @@
-# Predicting Customer Churn for Lloyd's Banking Group
+# Lloyd Banking Churn Prediction
 
-This project tackles the critical business problem of customer churn. By analyzing customer data, we've built a machine learning model that can predict which customers are likely to leave. This allows for proactive, targeted retention efforts, which can save the bank money and improve customer loyalty.
+![Build Status](https://img.shields.io/badge/build-not_configured-lightgrey)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-This README provides a high-level overview of our approach, findings, and how this work can be used to make a real-world impact.
+**Problem:** Retail banks lose high-value customers without enough early-warning signals; this project predicts customer churn risk using customer behavior, service, and engagement data.
 
-## The Big Picture: Our Approach
+## Table of Contents 📑
 
-Our goal was to build a reliable churn prediction model. We broke this down into two main phases:
+- [Header](#lloyd-banking-churn-prediction)
+- [About the Project 📚](#about-the-project-)
+- [Screenshots / Demo 📷](#screenshots--demo-)
+- [Technologies Used ☕️ 🐍 ⚛️](#technologies-used-️--)
+- [Setup / Installation 💻](#setup--installation-)
+- [Approach 🚶](#approach-)
+- [Example Usage / Output](#example-usage--output)
+- [Project Structure 📁](#project-structure-)
+- [Status 📶](#status-)
+- [Limitations ⚠️](#limitations-️)
+- [Improvements / Roadmap 🚀](#improvements--roadmap-)
+- [Credits 📝](#credits-)
+- [Author](#author)
 
-1.  **Task 1: Data Foundation & Exploration.** We started by gathering and cleaning data from various sources, including customer demographics, transaction histories, and service interactions. We then explored this data to understand the underlying patterns and identify what factors might be related to churn. This foundational work was crucial for building a meaningful model.
+## About the Project 📚
 
-2.  **Task 2: Building and Evaluating the Model.** With a clean dataset, we tested several machine learning algorithms to see which one could best predict churn. We selected the most promising model, fine-tuned it for optimal performance, and then dug into its predictions to understand *why* it was making them.
+This repository builds a practical churn prediction workflow for a banking context using real tabular customer data from demographics, transactions, support interactions, and digital usage.
 
-## What We Did and Why
+It was built to answer a product problem: **which customers are likely to leave soon, and what signals should retention teams act on first?**
 
-### Data Preparation & Understanding (Task 1)
+It is for data scientists, ML engineers, and analytics teams who want a reproducible baseline they can extend into production scoring pipelines.
 
-Before we could even think about prediction, we had to get our data in order. We pulled together information from five different datasets, covering everything from a customer's age and income to their transaction frequency and service complaint history.
+## Screenshots / Demo 📷
 
-We aggregated this data to create a single, comprehensive view of each customer. This involved calculating new features like `total_spend`, `complaint_count`, and `LoginFrequency`. We then carefully cleaned the data, handling missing values and outliers to ensure our model wouldn't be led astray by messy or incomplete information.
+![Key numerical distributions](report_assets/histograms_key_numerical_features.png)
+![Boxplots by churn](report_assets/boxplots_by_churn.png)
+![Feature relationships by churn](report_assets/scatter_relationships_churn.png)
 
-This exploratory phase gave us our first clues about churn. For instance, we saw that lower login frequency and certain types of service usage were correlated with a higher likelihood of churning.
+**Backend-style sample output (risk scoring):**
 
-### Predicting Churn (Task 2)
+```text
+customer_id=483, churn_probability=0.72, risk_tier=HIGH
+customer_id=117, churn_probability=0.51, risk_tier=MEDIUM
+customer_id=902, churn_probability=0.18, risk_tier=LOW
+```
 
-With our customer-level dataset ready, we moved on to the predictive modeling phase.
+## Technologies Used ☕️ 🐍 ⚛️
 
-**Choosing the Right Tool for the Job:**
+| Layer | Tools |
+|---|---|
+| Language | Python |
+| Data Processing | pandas, numpy, openpyxl |
+| Visualization | matplotlib, seaborn |
+| ML | scikit-learn |
+| Experiment Runtime | Jupyter Notebook |
+| Dataset | Excel workbook (`Customer_Churn_Data_Large.xlsx`) |
 
-We evaluated four different machine learning models: Logistic Regression, Decision Tree, Gradient Boosting, and Random Forest. We chose **Random Forest** as our final model.
+## Setup / Installation 💻
 
-**Why Random Forest?** It consistently showed the best ability to distinguish between customers who would churn and those who wouldn't (as measured by ROC-AUC score). It's also a robust model that is less prone to overfitting and provides clear insights into which factors are most important for prediction.
+```bash
+git clone https://github.com/raghuveer9303/LLoyd-Banking-Churn-Project.git
+cd LLoyd-Banking-Churn-Project
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+jupyter notebook
+```
 
-**Fine-Tuning and Performance:**
+Open and run:
+1. `lloyd_task1.ipynb` (data prep + EDA)
+2. `lloyd_task2.ipynb` (modeling + evaluation)
 
-We tuned the Random Forest model to get the best possible performance. On our holdout test set, the model's performance was modest, which highlights a key challenge: the available data only tells part of the story. While the model provides a valuable signal, its accuracy is limited by the predictive power of the features we have.
+## Approach 🚶
 
-**The Key Drivers of Churn:**
+- **Pipeline style:** Two-stage ML workflow
+  - Stage 1: build customer-level analytical dataset from multi-sheet raw data
+  - Stage 2: train, compare, and tune churn classifiers
+- **Design choices:**
+  - Aggregate event-level transaction/service logs to customer grain
+  - Preserve missingness as signal using `<feature>_was_missing` flags
+  - Handle class imbalance using stratified validation and class-aware metrics
+- **Model strategy:** Benchmark Logistic Regression, Decision Tree, Gradient Boosting, and Random Forest, then tune the selected model with GridSearchCV.
 
-The model told us which factors were the most important for predicting churn. The top drivers include:
+## Example Usage / Output
 
-1.  `avg_spend`: How much a customer typically spends.
-2.  `LoginFrequency`: How often they engage with online services.
-3.  `Age`: The customer's age.
-4.  `svc_count`: The number of times they've contacted customer service.
-5.  `unresolved_rate`: The proportion of their service issues that went unresolved.
+### Example 1
 
-These insights are valuable on their own, as they point to specific areas of the customer experience that are linked to loyalty.
+```text
+input:
+Customer profile: Age=46, IncomeLevel=Low, ServiceUsage=Mobile App
+Behavior: LoginFrequency=3/week, avg_spend=4200, unresolved_rate=0.40
 
-## Where Do We Go From Here? (Future Scope)
+output:
+churn_probability=0.74 -> HIGH_RISK
+recommended_action="priority retention call + issue resolution follow-up"
+```
 
-This project is a strong starting point, but there's always room for improvement. Here are our key recommendations for future work:
+### Example 2
 
-*   **Richer Features:** The biggest opportunity for improvement is to create more powerful features. This could include:
-    *   **Trend Features:** Are transactions increasing or decreasing over time?
-    *   **Recency Features:** How many days has it been since a customer's last login or transaction?
-    *   **Product Breadth:** How many different products or services does a customer use?
+```text
+input:
+Customer profile: Age=31, IncomeLevel=High, ServiceUsage=Website
+Behavior: LoginFrequency=19/week, avg_spend=9800, unresolved_rate=0.00
 
-*   **Advanced Modeling:** We could explore more advanced algorithms like XGBoost or LightGBM, which often outperform Random Forest. We could also experiment with building separate models for different customer segments (e.g., a model just for mobile app users).
+output:
+churn_probability=0.11 -> LOW_RISK
+recommended_action="standard engagement campaign"
+```
 
-*   **Better Imbalance Handling:** Since churn is a relatively rare event, our dataset is imbalanced. Using techniques like SMOTE (Synthetic Minority Oversampling Technique) could help the model learn the patterns of the minority "churn" class more effectively.
+### Example 3
 
-## Limitations and What We Can Improve
+```text
+input:
+Batch scoring request: 1,000 active customers
 
-It's important to be transparent about the limitations of this work:
+output:
+Top 10% high-risk segment identified (100 customers)
+Campaign list exported with ranked churn probabilities
+```
 
-*   **Limited Predictive Signal:** The current features, while useful, don't capture all the nuances of why a customer might leave. This is the primary reason for the model's modest performance on the test set. The path to a more accurate model is through better data and feature engineering.
-*   **Small Dataset:** With only 1,000 customers, the model's performance metrics can be sensitive to the specific customers in the test set. A larger dataset would lead to more stable and reliable results.
-*   **Static View:** The current model is based on a static snapshot of customer data. A real-world implementation should use a more dynamic, time-based approach to validation (e.g., training on past data to predict future churn).
+## Project Structure 📁
 
-By investing in richer data and exploring more advanced techniques, we can build on this foundation to create an even more powerful and impactful churn prediction tool.
-# LLoyd-Banking-Churn-Project
+```text
+LLoyd-Banking-Churn-Project/
+├── README.md                         # Project overview, setup, architecture, and usage
+├── requirements.txt                  # Python dependencies for notebooks and ML workflow
+├── Customer_Churn_Data_Large.xlsx    # Source multi-sheet dataset used for analysis/modeling
+├── lloyd_task1.ipynb                 # Data gathering, cleaning, feature construction, and EDA
+├── lloyd_task1_report.md             # Written summary of Task 1 analysis and preprocessing
+├── lloyd_task2.ipynb                 # Model training, comparison, tuning, and evaluation
+├── lloyd_task2_report.md             # Detailed report of model results and business interpretation
+└── report_assets/
+    ├── histograms_key_numerical_features.png  # Distribution analysis of core numeric features
+    ├── boxplots_by_churn.png                  # Feature separation and outlier view by churn class
+    └── scatter_relationships_churn.png        # Pairwise behavior patterns colored by churn
+```
+
+## Status 📶
+
+**Maintained, in-progress.**
+
+- **Stable:** Data preparation pipeline, EDA workflow, baseline model comparison, tuned Random Forest training.
+- **Experimental:** Threshold optimization, calibration strategy, production deployment flow, and monitoring automation.
+
+## Limitations ⚠️
+
+- Dataset is small (1,000 customers), so metric variance is high on holdout splits.
+- Current features are mostly snapshot-based; limited temporal trends reduce predictive signal.
+- Class imbalance (~20% churn) still affects recall at default threshold settings.
+- No production API or scheduled retraining pipeline yet.
+
+## Improvements / Roadmap 🚀
+
+1. Add time-aware features (recency, trend, rolling behavior deltas) and retrain.
+2. Add probability calibration + threshold tuning tied to campaign budget constraints.
+3. Introduce experiment tracking and model versioning (e.g., MLflow).
+4. Package scoring as a lightweight API/batch job with automated weekly inference.
+5. Add data-drift and model-performance monitoring dashboards.
+
+## Credits 📝
+
+- Dataset and assignment context inspired by Lloyds Banking Group churn analytics use case.
+- Built with open-source ecosystem: [pandas](https://pandas.pydata.org/), [scikit-learn](https://scikit-learn.org/), [matplotlib](https://matplotlib.org/), [seaborn](https://seaborn.pydata.org/).
+- Methodology references: scikit-learn model selection and ensemble learning documentation.
+
+## Author
+
+Raghuveer — [LinkedIn](https://www.linkedin.com/) | [GitHub](https://github.com/raghuveer9303)
